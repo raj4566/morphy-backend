@@ -1,0 +1,307 @@
+{
+  "info": {
+    "name": "Morphergyx API",
+    "description": "Complete API collection for Morphergyx LLP platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Submit Inquiry",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Tech Innovations Ltd\",\n  \"name\": \"Sarah Johnson\",\n  \"email\": \"sarah.johnson@techinnovations.com\",\n  \"phone\": \"+1-555-123-4567\",\n  \"interest\": \"biofertilizer\",\n  \"volume\": 25000,\n  \"message\": \"We are interested in implementing your biofertilizer solution for our agricultural operations across 500 acres. Looking for scalable solutions with proven ROI.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/inquiries",
+              "host": ["{{baseUrl}}"],
+              "path": ["inquiries"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.environment.set(\"token\", jsonData.token);",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@morphergyx.com\",\n  \"password\": \"Change_This_Secure_Password_123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Verify Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inquiries (Admin)",
+      "item": [
+        {
+          "name": "Get All Inquiries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/inquiries?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["inquiries"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "new",
+                  "disabled": true
+                },
+                {
+                  "key": "interest",
+                  "value": "biofertilizer",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "Tech",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Inquiry by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/inquiries/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["inquiries", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "INQUIRY_ID_HERE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/inquiries/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["inquiries", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Update Inquiry Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"contacted\",\n  \"priority\": \"high\",\n  \"followUpDate\": \"2024-02-20\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/inquiries/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["inquiries", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "INQUIRY_ID_HERE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Note to Inquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Contacted customer via phone. Scheduled demo for next Tuesday at 2 PM. Customer is very interested in biofertilizer for 500 acre operation.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/inquiries/:id/notes",
+              "host": ["{{baseUrl}}"],
+              "path": ["inquiries", ":id", "notes"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "INQUIRY_ID_HERE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Inquiry",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/inquiries/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["inquiries", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "INQUIRY_ID_HERE"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
