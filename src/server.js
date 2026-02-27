@@ -21,7 +21,12 @@ const authRoutes = require('./routes/auth.routes.js');
 const app = express();
 
 // Connect to MongoDB
-connectDB();
+try{
+
+    connectDB();
+} catch (err) {
+    console.error('Failed to connect to MongoDB:', err);
+}
 
 // Security middleware
 app.use(helmet({
