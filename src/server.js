@@ -42,10 +42,10 @@ app.use(helmet({
 const corsOptions = {
     origin: function (origin, callback) {
         const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'];
-        
+
         // Allow requests with no origin (like mobile apps, Postman, curl)
         if (!origin) return callback(null, true);
-        
+
         if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
             callback(null, true);
         } else {
@@ -114,7 +114,7 @@ app.use(`/api/${process.env.API_VERSION || 'v1'}/auth`, authRoutes);
 // Serve static files (frontend) in production
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../../frontend')));
-    
+
     app.get('*', (req, res) => {
         res.sendFile(path.join(__dirname, '../../frontend/index.html'));
     });
