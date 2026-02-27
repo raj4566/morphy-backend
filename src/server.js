@@ -30,6 +30,8 @@ const authRoutes = require('./routes/auth.routes.js');
 // Initialize Express app
 const app = express();
 
+// Redeploy trigger: 2026-02-27T00:00:00Z - MongoDB IP whitelist updated
+
 // Connect to MongoDB
 connectDB();
 
