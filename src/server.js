@@ -10,6 +10,16 @@ const path = require('path');
 // Load environment variables
 dotenv.config();
 
+// Validate required environment variables
+const requiredEnvVars = ['MONGODB_URI'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+    console.error(`\n❌ Missing required environment variables: ${missingEnvVars.join(', ')}`);
+    console.error('Make sure these are set in your Vercel project settings under "Environment Variables"\n');
+    process.exit(1);
+}
+
 // Import configuration
 const connectDB = require('./config/db.js');
 
