@@ -32,8 +32,10 @@ const app = express();
 
 // Redeploy trigger: 2026-02-27T00:00:00Z - MongoDB IP whitelist updated
 
-// Connect to MongoDB
-connectDB();
+// Function to start server
+const startServer = async () => {
+    // Connect to MongoDB
+    await connectDB();
 
 // Security middleware
 app.use(helmet({
@@ -122,71 +124,71 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Route not found'
+    // 404 handler
+    app.use((req, res) => {
+        res.status(404).json({
+            success: false,
+            message: 'Route not found'
+        });
     });
-});
 
-// Global error handler
-app.use((err, req, res, next) => {
-    console.error('Error:', err);
+    // Global error handler
+    app.use((err, req, res, next) => {
+        console.error('Error:', err);
 
-    // CORS errors
-    if (err.message === 'Not allowed by CORS') {
-        return res.status(403).json({
+        // CORS errors
+        if (err.message === 'Not allowed by CORS') {
+            return res.status(403).json({
+                success: false,
+                message: 'CORS policy: Origin not allowed'
+            });
+        }
+
+        // Mongoose validation errors
+        if (err.name === 'ValidationError') {
+            const messages = Object.values(err.errors).map(e => e.message);
+            return res.status(400).json({
+                success: false,
+                message: 'Validation Error',
+                errors: messages
+            });
+        }
+
+        // Mongoose duplicate key error
+        if (err.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: 'Duplicate field value entered'
+            });
+        }
+
+        // JWT errors
+        if (err.name === 'JsonWebTokenError') {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid token'
+            });
+        }
+
+        if (err.name === 'TokenExpiredError') {
+            return res.status(401).json({
+                success: false,
+                message: 'Token expired'
+            });
+        }
+
+        // Default error
+        res.status(err.statusCode || 500).json({
             success: false,
-            message: 'CORS policy: Origin not allowed'
+            message: err.message || 'Server Error',
+            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
         });
-    }
-
-    // Mongoose validation errors
-    if (err.name === 'ValidationError') {
-        const messages = Object.values(err.errors).map(e => e.message);
-        return res.status(400).json({
-            success: false,
-            message: 'Validation Error',
-            errors: messages
-        });
-    }
-
-    // Mongoose duplicate key error
-    if (err.code === 11000) {
-        return res.status(400).json({
-            success: false,
-            message: 'Duplicate field value entered'
-        });
-    }
-
-    // JWT errors
-    if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Invalid token'
-        });
-    }
-
-    if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Token expired'
-        });
-    }
-
-    // Default error
-    res.status(err.statusCode || 500).json({
-        success: false,
-        message: err.message || 'Server Error',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
-});
 
-// Start server
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-    console.log(`
+    // Start server
+    const PORT = process.env.PORT || 5000;
+    const server = app.listen(PORT, () => {
+        console.log(`
 ╔════════════════════════════════════════════════════════╗
 ║                                                        ║
 ║          🧬 MORPHERGYX LLP API SERVER 🧬               ║
@@ -199,29 +201,38 @@ const server = app.listen(PORT, () => {
 ║  Health check: http://localhost:${PORT}/health${' '.padEnd(10)}║
 ║                                                        ║
 ╚════════════════════════════════════════════════════════╝
-    `);
-});
+        `);
+    });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-    console.error('❌ Unhandled Rejection:', err);
-    server.close(() => {
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', (err) => {
+        console.error('❌ Unhandled Rejection:', err);
+        server.close(() => {
+            process.exit(1);
+        });
+    });
+
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (err) => {
+        console.error('❌ Uncaught Exception:', err);
         process.exit(1);
     });
-});
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-    console.error('❌ Uncaught Exception:', err);
-    process.exit(1);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-    console.log('👋 SIGTERM received. Shutting down gracefully...');
-    server.close(() => {
-        console.log('✅ Process terminated');
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+        console.log('👋 SIGTERM received. Shutting down gracefully...');
+        server.close(() => {
+            console.log('✅ Process terminated');
+        });
     });
+
+    return server;
+};
+
+// Start the server
+startServer().catch((err) => {
+    console.error('❌ Failed to start server:', err.message);
+    process.exit(1);
 });
 
 module.exports = app;

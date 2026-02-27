@@ -67,7 +67,8 @@ const connectDB = async (retries = 3, delay = 2000) => {
         }
 
         console.error('❌ Failed to connect to MongoDB after all retries');
-        process.exit(1);
+        console.error('Note: Server will continue running but database operations will fail until connection is restored.');
+        return null;
     }
 };
 
